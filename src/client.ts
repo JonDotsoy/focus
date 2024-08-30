@@ -94,8 +94,8 @@ const rules: Rule<Options>[] = [
   rule(command("notes"), isBooleanAt("editNotes")),
   rule(command("create"), isBooleanAt("create")),
   rule(flag("-t", "--title"), isStringAt("title")),
-  rule(flag("-d", "--detach"), isStringAt("detach")),
-  rule(flag("-f", "--force"), isStringAt("force")),
+  rule(flag("-d", "--detach"), isBooleanAt("detach")),
+  rule(flag("-f", "--force"), isBooleanAt("force")),
 ];
 
 const options = flags<Options>(process.argv.slice(2), {}, rules);
