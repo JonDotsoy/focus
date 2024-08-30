@@ -21,15 +21,18 @@ export const configsRaw: unknown = configFile
   ? YAML.parse(await file(configFile).text())
   : {};
 
-const database = get(configsRaw, "server", "database");
-
-if (!(typeof database === "string"))
-  throw new Error("Database URL is not defined");
-
 export const configs = {
   server: {
     host: get.string(configsRaw, "server", "host") ?? "localhost",
     port: get.number(configsRaw, "server", "port"),
-    database: new URL(database, configFile ?? `file://${process.cwd()}`),
+    database: new URL(
+      get.string(configsRaw, "server", "database") ?? "./db.sqlite",
+      configFile ?? `file://${process.cwd()}`,
+    ),
+  },
+  client: {
+    terminal: {
+      refresh: get.number(configsRaw, "client", "terminal", "refresh") ?? 500,
+    },
   },
 } as const;
