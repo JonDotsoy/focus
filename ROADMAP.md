@@ -62,3 +62,17 @@ Also export a report on JSON format:
 ```
 [...]
 ```
+
+### update notes on current activity
+
+on terminal able to write a notes to the current activity.
+
+On the terminal when the view timer is working, the user can press the enter key, the focus app will open the editor (example visual studio code) and wait for the close it.
+
+### UI
+
+UI to interactive with the focus app
+
+### Deploy focus app with hombrebrew
+
+Integration with focus app
