@@ -1,4 +1,3 @@
-import { Database } from "bun:sqlite";
 import { configs } from "../configs";
 import { Store } from "./models/store";
 import { Timers } from "./models/timers";
