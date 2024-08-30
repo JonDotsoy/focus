@@ -38,6 +38,19 @@ router.use("POST", "/timer", {
   },
 });
 
+router.use("PUT", "/timer/note", {
+  fetch: async (req) => {
+    const url = new URL(req.url);
+    const note = url.searchParams.get("note");
+    if (!note)
+      return new Response(`Missing note on query params`, { status: 400 });
+
+    const timer = await timers.updateNote(note);
+
+    return Response.json(timer, { status: 201 });
+  },
+});
+
 const server = Bun.serve({
   hostname: configs.server.host,
   port: configs.server.port,

@@ -8,7 +8,8 @@ export interface Timer {
   id: string;
   title: string;
   start_at: number;
-  end_at: number;
+  end_at: number | null;
+  notes: string | null;
 }
 
 export class Timers {
@@ -75,5 +76,17 @@ export class Timers {
       Date.now(),
       currentTime.id,
     ]);
+  }
+
+  async updateNote(note: string) {
+    const currentTime = await this.currentTime();
+    if (!currentTime) {
+      throw new Error("No ongoing timer found");
+    }
+    await this.#db.run("UPDATE timers SET notes = ? WHERE id = ?", [
+      note,
+      currentTime.id,
+    ]);
+    return this.getTimer(currentTime.id);
   }
 }

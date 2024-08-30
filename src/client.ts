@@ -11,6 +11,10 @@ import {
 import { styleText } from "@jondotsoy/style-text";
 import { render, c } from "@jondotsoy/console-draw";
 import { emitKeypressEvents } from "readline";
+import { $ } from "bun";
+import * as os from "os";
+import * as fs from "fs/promises";
+import type { Timer } from "./db/models/timers.js";
 
 const t = async (f: () => Promise<string>): Promise<string> => {
   try {
@@ -21,18 +25,23 @@ const t = async (f: () => Promise<string>): Promise<string> => {
   }
 };
 
+type State<T> = {
+  current?: T;
+};
+const state = <T>(state?: T) => ({ current: state });
+
 // server class
 
 class Server {
   constructor(readonly basePath: URL) {}
 
-  async currentTimer() {
+  async currentTimer(): Promise<Timer | undefined> {
     const res = await fetch(new URL(`./timer/current`, this.basePath));
     const data = await res.json();
-    return data;
+    return data ?? undefined;
   }
 
-  async createTimer(title: string) {
+  async createTimer(title: string): Promise<Timer> {
     const url = new URL(`./timer`, this.basePath);
     url.searchParams.set("title", title);
     const res = await fetch(url, { method: "POST" });
@@ -51,6 +60,18 @@ class Server {
       throw new Error(
         `Failed to stop timer. Service status response ${res.status}: ${await t(() => res.text())}`,
       );
+  }
+
+  async updateNote(note: string): Promise<Timer> {
+    const url = new URL(`./timer/note`, this.basePath);
+    url.searchParams.set("note", note);
+    const res = await fetch(url, { method: "PUT" });
+    if (res.status !== 201)
+      throw new Error(
+        `Failed to update note. Service status response ${res.status}: ${await t(() => res.text())}`,
+      );
+    const time = await res.json();
+    return time;
   }
 }
 
@@ -75,8 +96,9 @@ const rules: Rule<Options>[] = [
 
 const options = flags<Options>(process.argv.slice(2), {}, rules);
 
-function renderTimer(timer: any) {
-  if (timer == null) throw new Error("No timer found");
+function renderTimer($timer: State<Timer>) {
+  const timer = $timer.current;
+  if (!timer) throw new Error("No timer found");
   const startAt = new Date(timer.start_at);
   const relativeTimer = () => {
     const milliseconds = Date.now() - timer.start_at;
@@ -103,22 +125,46 @@ function renderTimer(timer: any) {
             "text",
             `Start At: ${startAt.toLocaleString()} (${styleText("cyan", relativeTimer())})`,
           ),
+          c("text", `Notes:`),
+          c(
+            "text",
+            `${timer.notes ?? styleText(["gray", "italic"], "No notes")}`,
+          ),
         ]),
         c("text", `Press q to stop timer`),
+        c("text", `Press e to edit notes`),
         c("text", `Press Ctrl+C to exit`),
       ]),
     ),
   );
 }
 
-const onKeyInput = () => {
+const editNotes = async (timer: State<Timer>, initialNotes: string) => {
+  const notesPath = new URL(
+    `${os.tmpdir()}/${crypto.randomUUID()}/NOTES.nd`,
+    "file:",
+  );
+  await fs.mkdir(new URL("./", notesPath), { recursive: true });
+  await fs.writeFile(notesPath, initialNotes, "utf-8");
+  await $`code -w ${notesPath.pathname}`;
+  console.log(`Notes saved to ${notesPath.pathname}`);
+  const notes = await fs.readFile(notesPath, "utf-8");
+  timer.current = await server.updateNote(notes);
+};
+
+const onKeyInput = (timer: State<Timer>) => {
   emitKeypressEvents(process.stdin);
   process.stdin.setRawMode(true);
   process.stdin.on("keypress", async (chunk, key) => {
+    // Stop timer
     if (key && key.name === "q") {
       await server.stopTimer();
       console.log(`Stop timer`);
       process.exit();
+    }
+    // Edition notes
+    if (key && key.name === "e") {
+      await editNotes(timer, "foo");
     }
     if (key && key.name === "c" && key.ctrl) {
       process.exit();
@@ -133,9 +179,9 @@ const run = async () => {
   } else if (options.create) {
     if (!options.title) throw new Error("Missing '--title' argument");
 
-    const timer = await server.createTimer(options.title);
+    const timer = state(await server.createTimer(options.title));
     console.log(`New timer created`);
-    onKeyInput();
+    onKeyInput(timer);
     while (true) {
       console.clear();
       renderTimer(timer);
@@ -144,15 +190,15 @@ const run = async () => {
       );
     }
   } else {
-    const timer = await server.currentTimer();
-    if (timer == null) {
+    const $timer = state(await server.currentTimer());
+    if (!$timer.current) {
       console.error(styleText("reset", `No timer found`));
       return;
     }
-    onKeyInput();
+    onKeyInput($timer);
     while (true) {
       console.clear();
-      renderTimer(timer);
+      renderTimer($timer);
       await new Promise((resolve) =>
         setTimeout(resolve, configs.client.terminal.refresh),
       );
