@@ -1,5 +1,9 @@
 import type { Store } from "./store";
 
+// Migrations
+import * as migration1724985447 from "./migrations/timers/1724985447-table-timers.js";
+import * as migration1724985557 from "./migrations/timers/1724985557-column-notes.js";
+
 export interface Timer {
   id: string;
   title: string;
@@ -15,14 +19,8 @@ export class Timers {
   }
 
   async init() {
-    this.#db.run(`
-              CREATE TABLE IF NOT EXISTS timers (
-                  id TEXT PRIMARY KEY,
-                  title TEXT,
-                  start_at INTEGER,
-                  end_at INTEGER
-              )
-          `);
+    await migration1724985447.up(this.#db);
+    await migration1724985557.up(this.#db);
   }
 
   async getTimers() {
@@ -33,8 +31,8 @@ export class Timers {
     return this.#db
       .query<Timer, string>(
         `
-              SELECT * FROM timers WHERE id = ?
-          `,
+          SELECT * FROM timers WHERE id = ?
+        `,
       )
       .get(timerId);
   }
