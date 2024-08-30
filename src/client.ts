@@ -33,7 +33,7 @@ const state = <T>(state?: T) => ({ current: state });
 // server class
 
 class Server {
-  constructor(readonly basePath: URL) {}
+  constructor(readonly basePath: URL) { }
 
   async currentTimer(): Promise<Timer | undefined> {
     const res = await fetch(new URL(`./timer/current`, this.basePath));
@@ -139,13 +139,13 @@ function renderTimer($timer: State<Timer>) {
   );
 }
 
-const editNotes = async (timer: State<Timer>, initialNotes: string) => {
+const editNotes = async (timer: State<Timer>) => {
   const notesPath = new URL(
     `${os.tmpdir()}/${crypto.randomUUID()}/NOTES.nd`,
     "file:",
   );
   await fs.mkdir(new URL("./", notesPath), { recursive: true });
-  await fs.writeFile(notesPath, initialNotes, "utf-8");
+  await fs.writeFile(notesPath, timer.current?.notes ?? '', "utf-8");
   await $`code -w ${notesPath.pathname}`;
   console.log(`Notes saved to ${notesPath.pathname}`);
   const notes = await fs.readFile(notesPath, "utf-8");
@@ -164,7 +164,7 @@ const onKeyInput = (timer: State<Timer>) => {
     }
     // Edition notes
     if (key && key.name === "e") {
-      await editNotes(timer, "foo");
+      await editNotes(timer);
     }
     if (key && key.name === "c" && key.ctrl) {
       process.exit();

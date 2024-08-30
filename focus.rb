@@ -1,8 +1,9 @@
 class Focus < Formula
   desc ""
   homepage "https://github.com/JonDotsoy/focus#readme"
-  url "https://api.github.com/repos/JonDotsoy/focus/tarball/46c4990432be9e6d0f3935fdc0fa23fa7b7c1b09"
-  sha256 "d772d13da804f76a26405faf5e27359ab86c6d9a0f90f9c30e0cbff1b746b80c"
+  url "https://api.github.com/repos/JonDotsoy/focus/tarball/537c9ee0c2f36ca8a2a8b02ee3e23ac6f7652aed"
+
+  sha256 "4b759d0cb7206eb3c5cf9d9de1dc34a16e41d4ec69de4c2b40755054bc8cca67"
   license "MIT"
   version "v0.1.0"
 
