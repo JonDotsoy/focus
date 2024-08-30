@@ -30,12 +30,10 @@ type State<T> = {
 };
 const state = <T>(state?: T) => ({ current: state });
 
-// server class
-
-class Server {
+class Service {
   constructor(readonly basePath: URL) {}
 
-  async currentTimer(): Promise<Timer | undefined> {
+  async getCurrentTimer(): Promise<Timer | undefined> {
     const res = await fetch(new URL(`./timer/current`, this.basePath));
     const data = await res.json();
     return data ?? undefined;
@@ -53,7 +51,7 @@ class Server {
     return data;
   }
 
-  async stopTimer() {
+  async stopCurrentTimer() {
     const url = new URL(`./timer/stop`, this.basePath);
     const res = await fetch(url, { method: "POST" });
     if (res.status !== 200)
@@ -75,7 +73,7 @@ class Server {
   }
 }
 
-const server = new Server(
+const service = new Service(
   new URL(`http://${configs.server.host}:${configs.server.port}`),
 );
 
@@ -84,17 +82,26 @@ const args = process.argv.slice(2);
 
 type Options = {
   create: boolean;
+  editNotes: boolean;
   stop: boolean;
+  detach: boolean;
+  force: boolean;
   title: string;
 };
 
 const rules: Rule<Options>[] = [
   rule(command("stop"), isBooleanAt("stop")),
+  rule(command("notes"), isBooleanAt("editNotes")),
   rule(command("create"), isBooleanAt("create")),
   rule(flag("-t", "--title"), isStringAt("title")),
+  rule(flag("-d", "--detach"), isStringAt("detach")),
+  rule(flag("-f", "--force"), isStringAt("force")),
 ];
 
 const options = flags<Options>(process.argv.slice(2), {}, rules);
+
+const terminalAttached = !(options.detach ?? false);
+const force = options.force ?? false;
 
 function renderTimer($timer: State<Timer>) {
   const timer = $timer.current;
@@ -150,20 +157,20 @@ const editNotes = async (timer: State<Timer>) => {
   console.log(`Notes saved to ${notesPath.pathname}`);
   const notes = await fs.readFile(notesPath, "utf-8");
   try {
-    timer.current = await server.updateNote(notes);
+    timer.current = await service.updateNote(notes);
   } catch (error) {
     console.error(error);
     process.exit(1);
   }
 };
 
-const onKeyInput = (timer: State<Timer>) => {
+const attachKeyInputs = (timer: State<Timer>) => {
   emitKeypressEvents(process.stdin);
-  process.stdin.setRawMode(true);
+  if (process.stdin.isTTY) process.stdin.setRawMode(true);
   process.stdin.on("keypress", async (chunk, key) => {
     // Stop timer
     if (key && key.name === "q") {
-      await server.stopTimer();
+      await service.stopCurrentTimer();
       console.log(`Stop timer`);
       process.exit();
     }
@@ -177,38 +184,56 @@ const onKeyInput = (timer: State<Timer>) => {
   });
 };
 
-const run = async () => {
-  if (options.stop) {
-    console.log(`Stop timer`);
-    await server.stopTimer();
-  } else if (options.create) {
-    if (!options.title) throw new Error("Missing '--title' argument");
+const runStopTimer = async () => {
+  console.log(`Stop timer`);
+  await service.stopCurrentTimer();
+};
 
-    const timer = state(await server.createTimer(options.title));
-    console.log(`New timer created`);
-    onKeyInput(timer);
-    while (true) {
-      console.clear();
-      renderTimer(timer);
-      await new Promise((resolve) =>
-        setTimeout(resolve, configs.client.terminal.refresh),
-      );
-    }
-  } else {
-    const $timer = state(await server.currentTimer());
-    if (!$timer.current) {
-      console.error(styleText("reset", `No timer found`));
-      return;
-    }
-    onKeyInput($timer);
-    while (true) {
-      console.clear();
-      renderTimer($timer);
-      await new Promise((resolve) =>
-        setTimeout(resolve, configs.client.terminal.refresh),
-      );
-    }
+const runCreateTimer = async () => {
+  if (!options.title) throw new Error("Missing '--title' argument");
+
+  if (force) {
+    const currentTimer = await service.getCurrentTimer();
+    if (currentTimer) await service.stopCurrentTimer();
+    console.log(`Force stop timer`);
   }
+
+  const timerCreated = await service.createTimer(options.title);
+  const $timer = state(timerCreated);
+  console.log(`New timer created`);
+  attachKeyInputs($timer);
+  do {
+    console.clear();
+    renderTimer($timer);
+    await new Promise((resolve) =>
+      setTimeout(resolve, configs.client.terminal.refresh),
+    );
+  } while (terminalAttached);
+};
+
+const runLookTimer = async () => {
+  const $timer = state(await service.getCurrentTimer());
+
+  if (!$timer.current) {
+    console.error(styleText("reset", `No timer found`));
+    return false;
+  }
+
+  attachKeyInputs($timer);
+  do {
+    console.clear();
+    renderTimer($timer);
+    await new Promise((resolve) =>
+      setTimeout(resolve, configs.client.terminal.refresh),
+    );
+  } while (terminalAttached);
+};
+
+const run = async () => {
+  if (options.stop) return await runStopTimer();
+  if (options.create) return await runCreateTimer();
+
+  await runLookTimer();
 };
 
 await run();
