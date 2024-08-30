@@ -10,7 +10,7 @@ import {
 } from "@jondotsoy/flags";
 import { styleText } from "@jondotsoy/style-text";
 import { render, c } from "@jondotsoy/console-draw";
-import { emitKeypressEvents } from "readline"
+import { emitKeypressEvents } from "readline";
 
 const t = async (f: () => Promise<string>): Promise<string> => {
   try {
@@ -24,7 +24,7 @@ const t = async (f: () => Promise<string>): Promise<string> => {
 // server class
 
 class Server {
-  constructor(readonly basePath: URL) { }
+  constructor(readonly basePath: URL) {}
 
   async currentTimer() {
     const res = await fetch(new URL(`./timer/current`, this.basePath));
@@ -114,17 +114,17 @@ function renderTimer(timer: any) {
 const onKeyInput = () => {
   emitKeypressEvents(process.stdin);
   process.stdin.setRawMode(true);
-  process.stdin.on('keypress', async (chunk, key) => {
-    if (key && key.name === 'q') {
-      await server.stopTimer()
+  process.stdin.on("keypress", async (chunk, key) => {
+    if (key && key.name === "q") {
+      await server.stopTimer();
       console.log(`Stop timer`);
       process.exit();
     }
-    if (key && key.name === 'c' && key.ctrl) {
+    if (key && key.name === "c" && key.ctrl) {
       process.exit();
     }
-  })
-}
+  });
+};
 
 const run = async () => {
   if (options.stop) {
@@ -135,11 +135,13 @@ const run = async () => {
 
     const timer = await server.createTimer(options.title);
     console.log(`New timer created`);
-    onKeyInput()
+    onKeyInput();
     while (true) {
       console.clear();
       renderTimer(timer);
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) =>
+        setTimeout(resolve, configs.client.terminal.refresh),
+      );
     }
   } else {
     const timer = await server.currentTimer();
@@ -147,11 +149,13 @@ const run = async () => {
       console.error(styleText("reset", `No timer found`));
       return;
     }
-    onKeyInput()
+    onKeyInput();
     while (true) {
       console.clear();
       renderTimer(timer);
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) =>
+        setTimeout(resolve, configs.client.terminal.refresh),
+      );
     }
   }
 };
