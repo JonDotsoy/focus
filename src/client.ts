@@ -138,9 +138,13 @@ function renderTimer($timer: State<Timer>) {
             `${timer.notes ?? styleText(["gray", "italic"], "No notes")}`,
           ),
         ]),
-        c("text", `Press q to stop timer`),
-        c("text", `Press e to edit notes`),
-        c("text", `Press Ctrl+C to exit`),
+        ...(terminalAttached
+          ? [
+              c("text", `Press q to stop timer`),
+              c("text", `Press e to edit notes`),
+              c("text", `Press Ctrl+C to exit`),
+            ]
+          : []),
       ]),
     ),
   );
@@ -165,6 +169,7 @@ const editNotes = async (timer: State<Timer>) => {
 };
 
 const attachKeyInputs = (timer: State<Timer>) => {
+  if (!terminalAttached) return;
   emitKeypressEvents(process.stdin);
   if (process.stdin.isTTY) process.stdin.setRawMode(true);
   process.stdin.on("keypress", async (chunk, key) => {
