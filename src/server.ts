@@ -1,9 +1,13 @@
-import { Router } from "artur";
+import { Router, cors } from "artur";
 import { configs } from "./configs.js";
 import { styleText } from "@jondotsoy/style-text";
 import { store, timers } from "./db/store.js";
 
-const router = new Router();
+const router = new Router({
+  middlewares: [
+    cors()
+  ]
+});
 
 router.use("GET", "/timer", {
   fetch: async () => {
