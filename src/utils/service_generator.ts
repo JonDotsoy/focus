@@ -1,5 +1,5 @@
 import { Router } from "artur";
-import { get } from "./get";
+import { get } from "./get.js";
 
 const t = <T>(promise: T | Promise<T>): Promise<[unknown, T]> =>
   Promise.resolve(promise)

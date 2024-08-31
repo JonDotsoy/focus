@@ -1,18 +1,17 @@
 import { file } from "bun";
 import * as YAML from "yaml";
-import { get } from "./utils/get";
+import { get } from "./utils/get.js";
 import os from "os";
 
 const configFileAlternatives = [
   new URL(".config/focus/configs.yaml", new URL(`${os.homedir()}/`, "file:")),
-  // new URL("../configs.yaml", import.meta.url),
 ];
 
 let configFile: URL | null = null;
 
-for (const file of configFileAlternatives) {
-  if (await Bun.file(file).exists()) {
-    configFile = file;
+for (const configFileAlternative of configFileAlternatives) {
+  if (await file(configFileAlternative).exists()) {
+    configFile = configFileAlternative;
     break;
   }
 }
