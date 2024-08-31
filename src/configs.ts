@@ -24,7 +24,7 @@ export const configsRaw: unknown = configFile
 export const configs = {
   server: {
     host: get.string(configsRaw, "server", "host") ?? "localhost",
-    port: get.number(configsRaw, "server", "port"),
+    port: get.number(configsRaw, "server", "port") ?? 56895,
     database: new URL(
       get.string(configsRaw, "server", "database") ?? "./db.sqlite",
       configFile ?? `file://${process.cwd()}`,
