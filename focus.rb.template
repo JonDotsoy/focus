@@ -9,6 +9,7 @@ class Focus < Formula
 
   depends_on "oven-sh/bun/bun"
   depends_on "make"
+  depends_on "jq"
 
   def install
     system "make", "install"
