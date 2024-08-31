@@ -5,7 +5,7 @@ import os from "os";
 
 const configFileAlternatives = [
   new URL(".config/focus/configs.yaml", new URL(`${os.homedir()}/`, "file:")),
-  new URL("../configs.yaml", import.meta.url),
+  // new URL("../configs.yaml", import.meta.url),
 ];
 
 let configFile: URL | null = null;
