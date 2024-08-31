@@ -67,7 +67,7 @@ export class Timers {
     return timer;
   }
 
-  async stopTimer() {
+  async stopCurrentTimer() {
     const currentTime = await this.currentTime();
     if (!currentTime) {
       throw new Error("No ongoing timer found");
