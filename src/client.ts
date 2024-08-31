@@ -15,6 +15,20 @@ import { $ } from "bun";
 import * as os from "os";
 import * as fs from "fs/promises";
 import type { Timer } from "./db/models/timers.js";
+import { createClientService } from "./utils/service_generator.js";
+
+const relativeTime = (ms: number) => {
+  const seconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (days > 0) return `${days}d`;
+  if (hours > 0) return `${hours}h`;
+  if (minutes > 0) return `${minutes}m`;
+  if (seconds > 0) return `${seconds}s`;
+  return `0s`;
+};
 
 const t = async (f: () => Promise<string>): Promise<string> => {
   try {
@@ -30,57 +44,62 @@ type State<T> = {
 };
 const state = <T>(state?: T) => ({ current: state });
 
-class Service {
-  constructor(readonly basePath: URL) {}
-
-  async getCurrentTimer(): Promise<Timer | undefined> {
-    const res = await fetch(new URL(`./timer/current`, this.basePath));
-    const data = await res.json();
-    return data ?? undefined;
-  }
-
-  async createTimer(title: string): Promise<Timer> {
-    const url = new URL(`./timer`, this.basePath);
-    url.searchParams.set("title", title);
-    const res = await fetch(url, { method: "POST" });
-    if (res.status !== 201)
-      throw new Error(
-        `Failed to create timer. Service status response ${res.status}: ${await t(() => res.text())}`,
-      );
-    const data = await res.json();
-    return data;
-  }
-
-  async stopCurrentTimer() {
-    const url = new URL(`./timer/stop`, this.basePath);
-    const res = await fetch(url, { method: "POST" });
-    if (res.status !== 200)
-      throw new Error(
-        `Failed to stop timer. Service status response ${res.status}: ${await t(() => res.text())}`,
-      );
-  }
-
-  async updateNote(note: string): Promise<Timer> {
-    const url = new URL(`./timer/note`, this.basePath);
-    url.searchParams.set("note", note);
-    const res = await fetch(url, { method: "PUT" });
-    if (res.status !== 201)
-      throw new Error(
-        `Failed to update note. Service status response ${res.status}: ${await t(() => res.text())}`,
-      );
-    const time = await res.json();
-    return time;
-  }
-}
-
-const service = new Service(
+const service = await createClientService<typeof import("./services.js")>(
   new URL(`http://${configs.server.host}:${configs.server.port}`),
 );
+
+// class Service {
+//   constructor(readonly basePath: URL) { }
+
+//   async getCurrentTimer(): Promise<Timer | undefined> {
+//     const res = await fetch(new URL(`./timer/current`, this.basePath));
+//     const data = await res.json();
+//     return data ?? undefined;
+//   }
+
+//   async createTimer(title: string): Promise<Timer> {
+//     const url = new URL(`./timer`, this.basePath);
+//     url.searchParams.set("title", title);
+//     const res = await fetch(url, { method: "POST" });
+//     if (res.status !== 201)
+//       throw new Error(
+//         `Failed to create timer. Service status response ${res.status}: ${await t(() => res.text())}`,
+//       );
+//     const data = await res.json();
+//     return data;
+//   }
+
+//   async stopCurrentTimer() {
+//     const url = new URL(`./timer/stop`, this.basePath);
+//     const res = await fetch(url, { method: "POST" });
+//     if (res.status !== 200)
+//       throw new Error(
+//         `Failed to stop timer. Service status response ${res.status}: ${await t(() => res.text())}`,
+//       );
+//   }
+
+//   async updateNote(note: string): Promise<Timer> {
+//     const url = new URL(`./timer/note`, this.basePath);
+//     url.searchParams.set("note", note);
+//     const res = await fetch(url, { method: "PUT" });
+//     if (res.status !== 201)
+//       throw new Error(
+//         `Failed to update note. Service status response ${res.status}: ${await t(() => res.text())}`,
+//       );
+//     const time = await res.json();
+//     return time;
+//   }
+// }
+
+// const service = new Service(
+//   new URL(`http://${configs.server.host}:${configs.server.port}`),
+// );
 
 // parse arguments
 const args = process.argv.slice(2);
 
 type Options = {
+  list: boolean;
   create: boolean;
   editNotes: boolean;
   stop: boolean;
@@ -90,6 +109,7 @@ type Options = {
 };
 
 const rules: Rule<Options>[] = [
+  rule(command("list"), isBooleanAt("list")),
   rule(command("stop"), isBooleanAt("stop")),
   rule(command("notes"), isBooleanAt("editNotes")),
   rule(command("create"), isBooleanAt("create")),
@@ -161,7 +181,7 @@ const editNotes = async (timer: State<Timer>) => {
   console.log(`Notes saved to ${notesPath.pathname}`);
   const notes = await fs.readFile(notesPath, "utf-8");
   try {
-    timer.current = await service.updateNote(notes);
+    timer.current = (await service.updateNote(notes)) ?? undefined;
   } catch (error) {
     console.error(error);
     process.exit(1);
@@ -217,7 +237,7 @@ const runCreateTimer = async () => {
 };
 
 const runLookTimer = async () => {
-  const $timer = state(await service.getCurrentTimer());
+  const $timer = state((await service.getCurrentTimer()) ?? undefined);
 
   if (!$timer.current) {
     console.error(styleText("reset", `No timer found`));
@@ -234,7 +254,25 @@ const runLookTimer = async () => {
   } while (terminalAttached);
 };
 
+const runListTimers = async () => {
+  const timers = await service.listTimers();
+  console.log(
+    render(
+      c("div", [
+        c("text", `Timers:`),
+        ...timers.map((timer) =>
+          c(
+            "text",
+            `- ${timer.end_at ? styleText("cyan", relativeTime(timer.end_at - timer.start_at)) : "active"} ${timer.title}`,
+          ),
+        ),
+      ]),
+    ),
+  );
+};
+
 const run = async () => {
+  if (options.list) return await runListTimers();
   if (options.stop) return await runStopTimer();
   if (options.create) return await runCreateTimer();
 
