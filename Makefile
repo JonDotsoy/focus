@@ -4,9 +4,13 @@ COMMIT_SHASUM_256 := `curl -L "https://api.github.com/repos/JonDotsoy/focus/tarb
 install:
 	bun install
 
-build:
+build: build-pkg
 	bun build --compile ./src/client.ts --outfile bin/focus
 	bun build --compile ./src/server.ts --outfile bin/focusd
+
+build-pkg:
+	cat package.json | jq '{version:.version} | @json | "export const pkg = " + . + " as const"' -r > src/pkg.ts
+	bunx prettier -w src/pkg.ts
 
 build-brew-formule:
 	git rev-parse HEAD > ${TMPDIR}/.focus-build.HEAD
