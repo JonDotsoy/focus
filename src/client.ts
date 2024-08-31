@@ -16,6 +16,7 @@ import * as os from "os";
 import * as fs from "fs/promises";
 import type { Timer } from "./db/models/timers.js";
 import { createClientService } from "./utils/service_generator.js";
+import { pkg } from "./pkg.js";
 
 const relativeTime = (ms: number) => {
   const seconds = Math.floor(ms / 1000);
@@ -48,59 +49,10 @@ const service = await createClientService<typeof import("./services.js")>(
   new URL(`http://${configs.server.host}:${configs.server.port}`),
 );
 
-// class Service {
-//   constructor(readonly basePath: URL) { }
-
-//   async getCurrentTimer(): Promise<Timer | undefined> {
-//     const res = await fetch(new URL(`./timer/current`, this.basePath));
-//     const data = await res.json();
-//     return data ?? undefined;
-//   }
-
-//   async createTimer(title: string): Promise<Timer> {
-//     const url = new URL(`./timer`, this.basePath);
-//     url.searchParams.set("title", title);
-//     const res = await fetch(url, { method: "POST" });
-//     if (res.status !== 201)
-//       throw new Error(
-//         `Failed to create timer. Service status response ${res.status}: ${await t(() => res.text())}`,
-//       );
-//     const data = await res.json();
-//     return data;
-//   }
-
-//   async stopCurrentTimer() {
-//     const url = new URL(`./timer/stop`, this.basePath);
-//     const res = await fetch(url, { method: "POST" });
-//     if (res.status !== 200)
-//       throw new Error(
-//         `Failed to stop timer. Service status response ${res.status}: ${await t(() => res.text())}`,
-//       );
-//   }
-
-//   async updateNote(note: string): Promise<Timer> {
-//     const url = new URL(`./timer/note`, this.basePath);
-//     url.searchParams.set("note", note);
-//     const res = await fetch(url, { method: "PUT" });
-//     if (res.status !== 201)
-//       throw new Error(
-//         `Failed to update note. Service status response ${res.status}: ${await t(() => res.text())}`,
-//       );
-//     const time = await res.json();
-//     return time;
-//   }
-// }
-
-// const service = new Service(
-//   new URL(`http://${configs.server.host}:${configs.server.port}`),
-// );
-
-// parse arguments
-const args = process.argv.slice(2);
-
 type Options = {
   list: boolean;
   create: boolean;
+  version: boolean;
   editNotes: boolean;
   stop: boolean;
   detach: boolean;
@@ -112,6 +64,7 @@ const rules: Rule<Options>[] = [
   rule(command("list"), isBooleanAt("list")),
   rule(command("stop"), isBooleanAt("stop")),
   rule(command("notes"), isBooleanAt("editNotes")),
+  rule(command("version"), isBooleanAt("version")),
   rule(command("create"), isBooleanAt("create")),
   rule(flag("-t", "--title"), isStringAt("title")),
   rule(flag("-d", "--detach"), isBooleanAt("detach")),
@@ -160,10 +113,10 @@ function renderTimer($timer: State<Timer>) {
         ]),
         ...(terminalAttached
           ? [
-              c("text", `Press q to stop timer`),
-              c("text", `Press e to edit notes`),
-              c("text", `Press Ctrl+C to exit`),
-            ]
+            c("text", `Press q to stop timer`),
+            c("text", `Press e to edit notes`),
+            c("text", `Press Ctrl+C to exit`),
+          ]
           : []),
       ]),
     ),
@@ -271,10 +224,15 @@ const runListTimers = async () => {
   );
 };
 
+const runVersion = () => {
+  console.log(`Version: v${pkg.version}`);
+}
+
 const run = async () => {
   if (options.list) return await runListTimers();
   if (options.stop) return await runStopTimer();
   if (options.create) return await runCreateTimer();
+  if (options.version) return await runVersion();
 
   await runLookTimer();
 };
