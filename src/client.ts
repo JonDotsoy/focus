@@ -15,7 +15,7 @@ import { $ } from "bun";
 import * as os from "os";
 import * as fs from "fs/promises";
 import type { Timer } from "./db/models/timers.js";
-import { createClientService } from "./utils/service_generator.js";
+import { createHTTPClient } from "./utils/simplerpc.js";
 import { pkg } from "./pkg.js";
 
 const relativeTime = (ms: number) => {
@@ -45,7 +45,7 @@ type State<T> = {
 };
 const state = <T>(state?: T) => ({ current: state });
 
-const service = await createClientService<typeof import("./services.js")>(
+const service = await createHTTPClient<typeof import("./services.js")>(
   new URL(`http://${configs.server.host}:${configs.server.port}`),
 );
 
@@ -113,10 +113,10 @@ function renderTimer($timer: State<Timer>) {
         ]),
         ...(terminalAttached
           ? [
-            c("text", `Press q to stop timer`),
-            c("text", `Press e to edit notes`),
-            c("text", `Press Ctrl+C to exit`),
-          ]
+              c("text", `Press q to stop timer`),
+              c("text", `Press e to edit notes`),
+              c("text", `Press Ctrl+C to exit`),
+            ]
           : []),
       ]),
     ),
@@ -226,7 +226,7 @@ const runListTimers = async () => {
 
 const runVersion = () => {
   console.log(`Version: v${pkg.version}`);
-}
+};
 
 const run = async () => {
   if (options.list) return await runListTimers();

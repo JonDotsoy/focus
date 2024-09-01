@@ -1,15 +1,30 @@
-import { Router } from "artur";
+import { cors, Router } from "artur";
 import { get } from "./get.js";
 
-const t = <T>(promise: T | Promise<T>): Promise<[unknown, T]> =>
+const resultOrError = <T>(
+  promise: T | Promise<T>,
+): Promise<[unknown, never] | [null, T]> =>
   Promise.resolve(promise)
     .then((r) => [null, r])
     .catch((e) => [e, null]) as any;
 
-export const serviceGenerator = async <T>(service: T | Promise<T>) => {
+type LikeURL = { toString(): string };
+
+type RPCService<T> = T extends object
+  ? {
+      [K in keyof T]: T[K] extends (...args: infer A) => infer R
+        ? (...args: A) => Promise<Awaited<R>>
+        : never;
+      // T[K] //(...args: Parameters<T[K]>) => Promise<Awaited<ReturnType<T[K]>>>
+    }
+  : never;
+
+export const createHTTPServer = async <T>(service: T | Promise<T>) => {
   const serviceCore = await service;
 
-  const router = new Router();
+  const router = new Router({
+    middlewares: [cors()],
+  });
 
   router.use("POST", "/invoke", {
     fetch: async (req) => {
@@ -32,7 +47,7 @@ export const serviceGenerator = async <T>(service: T | Promise<T>) => {
           { status: 404 },
         );
 
-      const [error, result] = await t(service(...args));
+      const [error, result] = await resultOrError(service(...args));
 
       if (error) {
         console.error(error);
@@ -48,9 +63,8 @@ export const serviceGenerator = async <T>(service: T | Promise<T>) => {
   return router;
 };
 
-export const createClientService = async <T>(
-  baseURL: URL,
-): Promise<Awaited<T>> => {
+export const createHTTPClient = <T>(url: LikeURL): RPCService<T> => {
+  const baseURL = new URL(url.toString());
   const invokeFunction = async (functionName: string, args: any[]) => {
     const url = new URL("./invoke", baseURL);
     url.searchParams.set("function", functionName);

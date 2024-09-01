@@ -1,9 +1,9 @@
 import { configs } from "./configs.js";
 import { styleText } from "@jondotsoy/style-text";
-import { serviceGenerator as createRouterService } from "./utils/service_generator.js";
+import { createHTTPServer } from "./utils/simplerpc.js";
 import * as services from "./services.js";
 
-const serviceRouter = await createRouterService(services);
+const serviceRouter = await createHTTPServer(services);
 
 const server = Bun.serve({
   hostname: configs.server.host,
