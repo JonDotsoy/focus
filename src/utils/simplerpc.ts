@@ -23,7 +23,11 @@ export const createHTTPServer = async <T>(service: T | Promise<T>) => {
   const serviceCore = await service;
 
   const router = new Router({
-    middlewares: [cors()],
+    middlewares: [
+      cors({
+        origin: "http://localhost:1420",
+      }),
+    ],
   });
 
   router.use("POST", "/invoke", {

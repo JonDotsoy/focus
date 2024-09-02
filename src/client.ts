@@ -118,10 +118,10 @@ function renderTimer($timer: State<Timer>) {
         ]),
         ...(terminalAttached
           ? [
-              c("text", `Press q to stop timer`),
-              c("text", `Press e to edit notes`),
-              c("text", `Press Ctrl+C to exit`),
-            ]
+            c("text", `Press q to stop timer`),
+            c("text", `Press e to edit notes`),
+            c("text", `Press Ctrl+C to exit`),
+          ]
           : []),
       ]),
     ),
@@ -221,7 +221,7 @@ const runListTimers = async () => {
         ...timers.map((timer) =>
           c(
             "text",
-            `- ${timer.end_at ? styleText("cyan", relativeTime(timer.end_at - timer.start_at)) : "active"} ${timer.title}`,
+            `- ${timer.end_at ? styleText("cyan", relativeTime(timer.end_at - timer.start_at)) : styleText("green", "active")} ${timer.title}`,
           ),
         ),
       ]),
