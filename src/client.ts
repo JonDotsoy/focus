@@ -15,7 +15,7 @@ import { $ } from "bun";
 import * as os from "os";
 import * as fs from "fs/promises";
 import type { Timer } from "./db/models/timers.js";
-import { createHTTPClient } from "./utils/simplerpc.js";
+import { createHTTPClient } from "@jondotsoy/simplerpc";
 import { pkg } from "./pkg.js";
 
 const relativeTime = (ms: number) => {

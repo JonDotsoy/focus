@@ -1,6 +1,6 @@
 import { configs } from "./configs.js";
 import { styleText } from "@jondotsoy/style-text";
-import { createHTTPServer } from "./utils/simplerpc.js";
+import { createHTTPServer } from "@jondotsoy/simplerpc";
 import * as services from "./services.js";
 
 const serviceRouter = await createHTTPServer(services);
