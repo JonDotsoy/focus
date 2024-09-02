@@ -84,8 +84,13 @@ function renderTimer($timer: State<Timer>) {
     const milliseconds = Date.now() - timer.start_at;
     const seconds = Math.floor(milliseconds / 1000);
     const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
 
     const str: string[] = [];
+
+    if (hours > 60 * 60 * 1000) {
+      str.push(`${hours}h`);
+    }
 
     if (milliseconds > 60 * 1000) {
       str.push(`${minutes}m`);
