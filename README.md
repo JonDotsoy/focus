@@ -1,8 +1,10 @@
 # Focus
 
+Por fin un camino simple para traquear tus actividades.
+
 IDEA: Preparar la tarea antes de iniciarla. para esto primero define la tarea y luego ejecuta el temporizador.
 
-## Priemra entrega
+## Primera entrega
 
 cuenta de 2 artefactos.
 

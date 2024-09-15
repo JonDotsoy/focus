@@ -1,6 +1,6 @@
 import { file } from "bun";
 import * as YAML from "yaml";
-import { get } from "./utils/get.js";
+import { get } from "@jondotsoy/utils-js";
 import os from "os";
 
 const configFileAlternatives = [

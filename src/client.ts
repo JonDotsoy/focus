@@ -118,10 +118,10 @@ function renderTimer($timer: State<Timer>) {
         ]),
         ...(terminalAttached
           ? [
-            c("text", `Press q to stop timer`),
-            c("text", `Press e to edit notes`),
-            c("text", `Press Ctrl+C to exit`),
-          ]
+              c("text", `Press q to stop timer`),
+              c("text", `Press e to edit notes`),
+              c("text", `Press Ctrl+C to exit`),
+            ]
           : []),
       ]),
     ),

@@ -14,7 +14,9 @@
   "dependencies": {
     "@jondotsoy/console-draw": "^0.2.6",
     "@jondotsoy/flags": "^2.1.0",
+    "@jondotsoy/simplerpc": "^0.1.2",
     "@jondotsoy/style-text": "^0.9.1",
+    "@jondotsoy/utils-js": "^0.2.1",
     "artur": "^1.2.1",
     "yaml": "^2.5.0"
   },
