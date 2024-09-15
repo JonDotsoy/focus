@@ -1,0 +1,22 @@
+.items {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5em;
+}
+
+.itemTimeStamp {
+  color: gray;
+}
+
+.contentTimer {
+  display: grid;
+  gap: 1;
+
+  .title {}
+
+  .notes {
+    padding-left: 1em;
+    color: hsl(0, 0%, 30%);
+    font-size: 0.9em;
+  }
+}

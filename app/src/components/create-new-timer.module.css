@@ -1,0 +1,23 @@
+.container {
+  display: grid;
+  padding-bottom: 2em;
+
+  grid-template-areas:
+    '. form .';
+
+  grid-template-columns: 1fr 500px 1fr;
+
+  &>.form {
+    grid-area: form;
+    display: grid;
+    gap: 1em;
+
+    &>input {
+      display: block;
+      width: 100%;
+      border: solid 1px hsl(0, 0%, 70%);
+      padding: 0.5em 1em;
+      border-radius: 0.4em;
+    }
+  }
+}

@@ -1,0 +1,33 @@
+@property --gray-1 {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #e1e1e1;
+}
+
+body {
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  padding: 0px;
+  margin: 0px;
+  background-color: hsl(0, 0%, 98%);
+}
+
+.container {
+  padding: 1em;
+}
+
+.timer-card {
+  display: grid;
+
+  .notes {
+    textarea {
+      width: 100%;
+      border: solid 1px var(--gray-1);
+    }
+  }
+}
+
+.new-timer {
+  button {
+    
+  }
+}

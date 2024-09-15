@@ -1,0 +1,45 @@
+.card {
+  display: grid;
+  padding-bottom: 2em;
+
+  grid-template-areas:
+    '. blockId .'
+    '. blockTitle .'
+    '. blockNotes .'
+    '. controls .'
+  ;
+
+  gap: 0.5em;
+
+  grid-template-columns: 1fr 500px 1fr;
+
+  &>.blockId {
+    grid-area: blockId;
+    font-size: 0.8em;
+    color: hsl(0, 0%, 70%);
+  }
+
+  &>.blockTitle {
+    grid-area: blockTitle;
+    font-size: 1.3em;
+  }
+
+  &>.blockNotes {
+    grid-area: blockNotes;
+
+    &>.label {
+      color: hsl(0, 0%, 30%);
+    }
+
+    &>textarea {
+      display: block;
+      width: 100%;
+      border: solid 1px hsl(0, 0%, 80%);
+      padding: 1em;
+    }
+  }
+
+  &>.controls {
+    grid-area: controls;
+  }
+}
