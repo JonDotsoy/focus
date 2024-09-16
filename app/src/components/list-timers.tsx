@@ -6,16 +6,23 @@ import TimerPrint from "./timer-print";
 export default () => {
   const focus = useFocus();
 
-  const timers = useMemo(() => focus.timers?.sort((a, b) => b.start_at - a.start_at), [focus.timers]);
+  const timers = useMemo(() => Object.groupBy(focus.timers?.sort((a, b) => b.start_at - a.start_at) ?? [], e => new Date(e.start_at).toLocaleDateString(undefined, { dateStyle: 'full' })), [focus.timers]);
 
-  return <div className={style.items}>
-    {timers?.map(timer =>
+  return <div className={style.container}>
+    {Object.entries(timers).map(([k, timers]) =>
       <>
-        <span className={style.contentTimer}>
-          <div className={style.title}>{timer.title}</div>
-          {timer.notes && <div className={style.notes}>{timer.notes}</div>}
-        </span>
-        <span className={style.itemTimeStamp}><TimerPrint start_at={timer.start_at} end_at={timer.end_at} ></TimerPrint></span>
+        <div className={style.labelTime}>{k}</div>
+        <div className={style.items}>
+          {timers?.map(timer =>
+            <div className={style.cardTimer}>
+              <div className={style.blockTitle}>{timer.title}</div>
+              {timer.notes && <div className={style.blockNotes}>{timer.notes}</div>}
+              <div className={style.blockTimer}>
+                <TimerPrint start_at={timer.start_at} end_at={timer.end_at} ></TimerPrint>
+              </div>
+            </div>
+          )}
+        </div>
       </>
     )}
   </div>

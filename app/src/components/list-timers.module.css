@@ -1,7 +1,12 @@
+.container {
+  max-width: 500px;
+  margin: auto;
+}
+
 .items {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0.5em;
+  grid-template-columns: 1fr;
+  gap: 1em;
 }
 
 .itemTimeStamp {
@@ -18,5 +23,46 @@
     padding-left: 1em;
     color: hsl(0, 0%, 30%);
     font-size: 0.9em;
+  }
+}
+
+.labelTime {
+  padding: 1em 0em;
+  font-size: 1.2em;
+  color: hsl(0, 0%, 50%);
+}
+
+.cardTimer {
+  display: grid;
+  gap: 0.5em;
+  grid-template-areas:
+    'title timer'
+    'notes timer'
+  ;
+
+  border: solid 1px rgba(0, 0, 0, 0.277);
+  padding: 0.5em;
+  border-radius: 0.4em;
+  box-shadow:
+    0em 0.1em 0.15em rgba(0, 0, 0, 0.1),
+    0em 0.15em 0.15em rgba(0, 0, 0, 0.05),
+    0em -0.15em 0.15em rgba(255, 255, 255, 0.1);
+
+  grid-template-columns: 1fr auto;
+
+  &>.blockTitle {
+    grid-area: title;
+  }
+
+  &>.blockNotes {
+    grid-area: notes;
+    font-size: 0.9em;
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  &>.blockTimer {
+    grid-area: timer;
+    font-size: 0.8em;
+    color: rgba(0, 0, 0, 0.6);
   }
 }

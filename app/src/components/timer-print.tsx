@@ -56,5 +56,5 @@ export default ({ start_at, end_at }: { start_at: number, end_at: null | number 
     return `durationMs`;
   }
 
-  return `${relativeTime(duration)} (start at ${dateStr(start_at)})`
+  return `${relativeTime(duration)}`
 }
