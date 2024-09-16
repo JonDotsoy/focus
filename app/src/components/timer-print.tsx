@@ -32,10 +32,6 @@ const timers = timersValues.map(val => ({
 }))
 
 
-const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'medium' });
-
-const dateStr = (date: number) => dateFormat.format(new Date(date))
-
 export default ({ start_at, end_at }: { start_at: number, end_at: null | number }) => {
   const calculateDuration = () => (end_at ?? Date.now()) - start_at;
   const [duration, setDuration] = useState(calculateDuration());
